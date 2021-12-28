@@ -1,21 +1,21 @@
 package com.example.project_upjao;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
+import android.accessibilityservice.AccessibilityService;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.PersistableBundle;
 import android.provider.MediaStore;
+import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -23,7 +23,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -34,18 +33,19 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOError;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 public class CameraOpen extends AppCompatActivity {
@@ -55,8 +55,17 @@ public class CameraOpen extends AppCompatActivity {
     ImageView selectedImage;
     Button cameraBtn,galleryBtn;
     String currentPhotoPath;
+    String currentPhotoPathwebp;
     StorageReference storageReference;
     String person_name;
+    Context context;
+    Uri photoURI;
+    File photoFile;
+    File storageDirSucc;
+    Long num = 0L;
+    Uri photoURIwebp;
+    File photoFilewebp;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,21 +77,21 @@ public class CameraOpen extends AppCompatActivity {
         cameraBtn = findViewById(R.id.cameraBtn);
         galleryBtn = findViewById(R.id.galleryBtn);
 
+        context=selectedImage.getContext();
+
+        //Checking if accessibility setting are on or not
+        /*if (!isAccessibilityOn (context, WhatsappAccessibilityService.class)) {
+            Intent intent1 = new Intent (Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            context.startActivity (intent1);
+        }*/
+
         storageReference = FirebaseStorage.getInstance().getReference();
 
-        cameraBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                askCameraPermissions();
-            }
-        });
+        cameraBtn.setOnClickListener(v -> askCameraPermissions());
 
-        galleryBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent gallery = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(gallery, GALLERY_REQUEST_CODE);
-            }
+        galleryBtn.setOnClickListener(v -> {
+            Intent gallery = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(gallery, GALLERY_REQUEST_CODE);
         });
 
     }
@@ -101,18 +110,87 @@ public class CameraOpen extends AppCompatActivity {
                 ,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.CAMERA},1234);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
-            case 1234:if(grantResults[0]==PackageManager.PERMISSION_GRANTED && grantResults[1]==PackageManager.PERMISSION_GRANTED){
-                // Do_SOme_Operation();
-            }
+    private void dispatchTakePictureIntent() {
 
-            default:super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                Toast.makeText(this, "Not able to create image file on disk :(", Toast.LENGTH_SHORT).show();
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                //increasing the count of number of tobeuploaded Pdf files.
+                try {
+                    FileReader fis = new FileReader(MainActivity.tobeUploaded);
+                    BufferedReader br =
+                            new BufferedReader(fis);
+                    String strLine;
+                    while ((strLine = br.readLine()) != null) {
+                        num = Long.parseLong(strLine);
+                    }
+                    Log.v("filepdf", Long.toString(num));
+                    num++;
+                    fis.close();
+                } catch (IOException e) {
+                    Log.v("filepdf", e.getMessage());
+                    e.printStackTrace();
+                }
+                try {
+                    FileWriter fos = new FileWriter(MainActivity.tobeUploaded);
+                    fos.write(Long.toString(num));
+                    fos.close();
+                } catch (IOException e) {
+                    Log.v("filepdf", e.getMessage());
+                }
+
+                photoURI = FileProvider.getUriForFile(context,
+                        context.getPackageName() + ".provider", photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+            }
+            /*if (photoFilewebp != null) {
+                photoURIwebp = FileProvider.getUriForFile(context,
+                        context.getPackageName() + ".provider", photoFilewebp);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURIwebp);
+                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+            }*/
         }
     }
 
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd$HHmmss").format(new Date());
+        String imageFileName = person_name+"$" + timeStamp + "_";
 
+        //creating file in internal storage for png image
+        File storageDir = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath()+"/To Be Uploaded");
+        storageDirSucc = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath()+"/Successfully Uploaded");
+        Log.v("direc",storageDir.getAbsolutePath());
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".png",         /* suffix */
+                storageDir      /* directory */
+
+        );
+
+        /*File imagewebp = File.createTempFile(
+                imageFileName,
+                ".webp",
+                storageDir
+        );*/
+
+        // Save a file: path for use with ACTION_VIEW intents
+        currentPhotoPath = image.getAbsolutePath();
+        //currentPhotoPathwebp = imagewebp.getAbsolutePath();
+        //photoFilewebp = imagewebp;
+        return image;
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -120,16 +198,42 @@ public class CameraOpen extends AppCompatActivity {
         if (requestCode == CAMERA_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 File f = new File(currentPhotoPath);
-                selectedImage.setImageURI(Uri.fromFile(f));
-                Log.d("tag", "ABsolute Url of Image is " + Uri.fromFile(f));
+
+                Bitmap myBitmap = BitmapFactory.decodeFile(f.getAbsolutePath());
+                selectedImage.setImageBitmap(myBitmap);
+
+                try  {
+                    FileOutputStream out = new FileOutputStream(f);
+
+                    myBitmap.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
+                    out.close();
+                } catch (IOException e) {
+                    Log.v("bitmap", e.getMessage());
+                }
+                Log.v("path", "ABsolute Url of Image is png " + Uri.fromFile(f));
 
                 Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
                 Uri contentUri = Uri.fromFile(f);
+
                 mediaScanIntent.setData(contentUri);
                 this.sendBroadcast(mediaScanIntent);
 
-                //uploadImageToFirebase(f.getName(),contentUri);
+                /*File fwebp = new File(currentPhotoPathwebp);
+                Log.d("path", "ABsolute Url of Image is webp" + Uri.fromFile(fwebp));
+                Uri contentUriwebp = Uri.fromFile(f);
+                try  {
+                    FileOutputStream out = new FileOutputStream(fwebp);
+
+                    myBitmap.compress(Bitmap.CompressFormat.WEBP, 90, out); // bmp is your Bitmap instance
+                    out.close();
+                } catch (IOException e) {
+                    Log.v("bitmap", e.getMessage());
+                }*/
+
                 uploadPlaceDataInBackground(f.getName(), contentUri);
+                Log.v("uricontent", contentUri.toString());
+                //uploadPlaceDataInBackground(fwebp.getName(), contentUriwebp);
+                //uploadToWhatsapp();
             }
 
         } else {
@@ -142,17 +246,25 @@ public class CameraOpen extends AppCompatActivity {
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                 String imageFileName = "png_Gallery" + timeStamp + "." + getFileExt(contentUri);
                 Log.d("tag", "onActivityResult: Gallery Image Uri:  " + imageFileName);
-                selectedImage.setImageURI(contentUri);
+                //selectedImage.setImageURI(contentUri);
 
+                //uploadToWhatsapp();
                 //uploadImageToFirebase(imageFileName,contentUri);
-                uploadPlaceDataInBackground(imageFileName, contentUri);
-
-
+                //uploadPlaceDataInBackground(imageFileName, contentUri);
             }
 
         }
+    }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case 1234:if(grantResults[0]==PackageManager.PERMISSION_GRANTED && grantResults[1]==PackageManager.PERMISSION_GRANTED){
+                // Do_SOme_Operation();
+            }
 
+            default:super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        }
     }
 
     private void uploadPlaceDataInBackground(String name, Uri contentUri) {
@@ -167,6 +279,7 @@ public class CameraOpen extends AppCompatActivity {
         Data.Builder uploadBuilder = new Data.Builder();
         uploadBuilder.putString("image_uri", contentUri.toString());
         uploadBuilder.putString("file_name", name);
+        uploadBuilder.putString("successful_uploaded_dir", storageDirSucc.getAbsolutePath());
         Data ImageUriInputData = uploadBuilder.build();
 
         // ...then create a OneTimeWorkRequest that uses those constraints
@@ -176,9 +289,15 @@ public class CameraOpen extends AppCompatActivity {
                 .setInputData(ImageUriInputData)
                 .build();
 
+        OneTimeWorkRequest sendToWhatsapp = new OneTimeWorkRequest
+                .Builder(UploadToWhatsapp.class)
+                .setConstraints(constraints)
+                .build();
+
         // Execute and Manage the background service
         WorkManager workManager = WorkManager.getInstance(selectedImage.getContext());
         workManager.beginWith(uploadWorkRequest)
+                .then(sendToWhatsapp)
                 .enqueue();
     }
 
@@ -189,50 +308,30 @@ public class CameraOpen extends AppCompatActivity {
     }
 
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = person_name+"__" + timeStamp + "_";
-//        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".png",         /* suffix */
-                storageDir      /* directory */
-        );
+    private boolean isAccessibilityOn (Context context, Class<? extends AccessibilityService> clazz) {
+        int accessibilityEnabled = 0;
+        final String service = context.getPackageName () + "/" + clazz.getCanonicalName ();
+        try {
+            accessibilityEnabled = Settings.Secure.getInt (context.getApplicationContext ().getContentResolver (), Settings.Secure.ACCESSIBILITY_ENABLED);
+        } catch (Settings.SettingNotFoundException ignored) {  }
 
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
+        TextUtils.SimpleStringSplitter colonSplitter = new TextUtils.SimpleStringSplitter (':');
 
+        if (accessibilityEnabled == 1) {
+            String settingValue = Settings.Secure.getString (context.getApplicationContext ().getContentResolver (), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (settingValue != null) {
+                colonSplitter.setString (settingValue);
+                while (colonSplitter.hasNext ()) {
+                    String accessibilityService = colonSplitter.next ();
 
-    private void dispatchTakePictureIntent() {
-
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+                    if (accessibilityService.equalsIgnoreCase (service)) {
+                        return true;
+                    }
+                }
             }
         }
-        else
-        {
-            //Toast.makeText(this, "Error Occured", Toast.LENGTH_SHORT).show();
-        }
+
+        return false;
     }
+
 }

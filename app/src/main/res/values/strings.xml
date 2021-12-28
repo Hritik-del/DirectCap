@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Project_Upjao</string>
+    <string name="whatsapp_suffix">"   "</string>
 </resources>
