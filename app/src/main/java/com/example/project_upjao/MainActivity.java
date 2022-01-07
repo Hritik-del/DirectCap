@@ -24,6 +24,7 @@ import java.io.IOException;
 public class MainActivity extends AppCompatActivity {
 
     TextInputLayout editText;
+    TextInputLayout editTextCrop;
     Button button;
     private String filename = "MySampleFile.txt";
     private String filepath = "MyFileStorage";
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         editText = findViewById(R.id.name);
+        editTextCrop = findViewById(R.id.cropType);
         button = findViewById(R.id.button);
 
 
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 //Toast.makeText(MainActivity.this, "Thank You!", Toast.LENGTH_SHORT).show();
                 Intent i = new Intent(MainActivity.this, CameraOpen.class);
                 i.putExtra("person_name", editText.getEditText().getText().toString());
+                i.putExtra("cropType", editTextCrop.getEditText().getText().toString());
                 startActivity(i);
             }
         });

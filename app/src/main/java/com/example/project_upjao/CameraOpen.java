@@ -1,7 +1,6 @@
 package com.example.project_upjao;
 
 import android.Manifest;
-import android.accessibilityservice.AccessibilityService;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -13,8 +12,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.provider.Settings;
-import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
@@ -35,16 +32,15 @@ import androidx.work.WorkManager;
 
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -58,6 +54,7 @@ public class CameraOpen extends AppCompatActivity {
     String currentPhotoPathwebp;
     StorageReference storageReference;
     String person_name;
+    String cropType;
     Context context;
     Uri photoURI;
     File photoFile;
@@ -73,17 +70,13 @@ public class CameraOpen extends AppCompatActivity {
 
         Intent intent = getIntent();
         person_name = intent.getStringExtra("person_name");
+        cropType = intent.getStringExtra("cropType");
+        Log.v("cropType", cropType);
         selectedImage = findViewById(R.id.displayImageView);
         cameraBtn = findViewById(R.id.cameraBtn);
         galleryBtn = findViewById(R.id.galleryBtn);
 
         context=selectedImage.getContext();
-
-        //Checking if accessibility setting are on or not
-        /*if (!isAccessibilityOn (context, WhatsappAccessibilityService.class)) {
-            Intent intent1 = new Intent (Settings.ACTION_ACCESSIBILITY_SETTINGS);
-            context.startActivity (intent1);
-        }*/
 
         storageReference = FirebaseStorage.getInstance().getReference();
 
@@ -183,12 +176,12 @@ public class CameraOpen extends AppCompatActivity {
                 imageFileName,
                 ".webp",
                 storageDir
-        );*/
+        );
+        currentPhotoPathwebp = imagewebp.getAbsolutePath();
+        photoFilewebp = imagewebp;*/
 
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
-        //currentPhotoPathwebp = imagewebp.getAbsolutePath();
-        //photoFilewebp = imagewebp;
         return image;
     }
 
@@ -199,17 +192,13 @@ public class CameraOpen extends AppCompatActivity {
             if (resultCode == Activity.RESULT_OK) {
                 File f = new File(currentPhotoPath);
 
-                Bitmap myBitmap = BitmapFactory.decodeFile(f.getAbsolutePath());
-                selectedImage.setImageBitmap(myBitmap);
+                Log.e("pathbitmap12", f.getPath());
+                Picasso.get().load(Uri.fromFile(f))
+                        .resize(300, 0)
+                        .centerInside()
+                        .into(selectedImage);
 
-                try  {
-                    FileOutputStream out = new FileOutputStream(f);
 
-                    myBitmap.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
-                    out.close();
-                } catch (IOException e) {
-                    Log.v("bitmap", e.getMessage());
-                }
                 Log.v("path", "ABsolute Url of Image is png " + Uri.fromFile(f));
 
                 Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -233,11 +222,8 @@ public class CameraOpen extends AppCompatActivity {
                 uploadPlaceDataInBackground(f.getName(), contentUri);
                 Log.v("uricontent", contentUri.toString());
                 //uploadPlaceDataInBackground(fwebp.getName(), contentUriwebp);
-                //uploadToWhatsapp();
             }
 
-        } else {
-            //Toast.makeText(this, "Error Occured", Toast.LENGTH_SHORT).show();
         }
 
         if (requestCode == GALLERY_REQUEST_CODE) {
@@ -280,24 +266,29 @@ public class CameraOpen extends AppCompatActivity {
         uploadBuilder.putString("image_uri", contentUri.toString());
         uploadBuilder.putString("file_name", name);
         uploadBuilder.putString("successful_uploaded_dir", storageDirSucc.getAbsolutePath());
+        uploadBuilder.putString("cropType", cropType);
         Data ImageUriInputData = uploadBuilder.build();
 
         // ...then create a OneTimeWorkRequest that uses those constraints
-        OneTimeWorkRequest uploadWorkRequest = new OneTimeWorkRequest
+        OneTimeWorkRequest uploadToFirebase = new OneTimeWorkRequest
                 .Builder(UploadImageWorker.class)
                 .setConstraints(constraints)
                 .setInputData(ImageUriInputData)
                 .build();
 
-        OneTimeWorkRequest sendToWhatsapp = new OneTimeWorkRequest
-                .Builder(UploadToWhatsapp.class)
-                .setConstraints(constraints)
+        Data.Builder uploadBuilder1 = new Data.Builder();
+        uploadBuilder1.putString("image_uri", currentPhotoPath);
+        Data ImageUriInputData1 = uploadBuilder1.build();
+
+        OneTimeWorkRequest compress = new OneTimeWorkRequest
+                .Builder(Compress.class)
+                .setInputData(ImageUriInputData1)
                 .build();
 
         // Execute and Manage the background service
         WorkManager workManager = WorkManager.getInstance(selectedImage.getContext());
-        workManager.beginWith(uploadWorkRequest)
-                .then(sendToWhatsapp)
+        workManager.beginWith(compress)
+                .then(uploadToFirebase)
                 .enqueue();
     }
 
@@ -308,30 +299,5 @@ public class CameraOpen extends AppCompatActivity {
     }
 
 
-    private boolean isAccessibilityOn (Context context, Class<? extends AccessibilityService> clazz) {
-        int accessibilityEnabled = 0;
-        final String service = context.getPackageName () + "/" + clazz.getCanonicalName ();
-        try {
-            accessibilityEnabled = Settings.Secure.getInt (context.getApplicationContext ().getContentResolver (), Settings.Secure.ACCESSIBILITY_ENABLED);
-        } catch (Settings.SettingNotFoundException ignored) {  }
-
-        TextUtils.SimpleStringSplitter colonSplitter = new TextUtils.SimpleStringSplitter (':');
-
-        if (accessibilityEnabled == 1) {
-            String settingValue = Settings.Secure.getString (context.getApplicationContext ().getContentResolver (), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-            if (settingValue != null) {
-                colonSplitter.setString (settingValue);
-                while (colonSplitter.hasNext ()) {
-                    String accessibilityService = colonSplitter.next ();
-
-                    if (accessibilityService.equalsIgnoreCase (service)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
 
 }

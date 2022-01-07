@@ -4,6 +4,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
@@ -51,15 +53,17 @@ public class UploadImageWorker extends Worker {
     @Override
     public Result doWork() {
         storageReference = FirebaseStorage.getInstance().getReference();
-        final Result[] result = {Result.retry()};
         String stringUri = getInputData().getString("image_uri");
         Log.v("uri", stringUri);
         Uri contentUri = Uri.parse(stringUri);
         String name = getInputData().getString("file_name");
+        String cropType = getInputData().getString("cropType");
         File succUploadDir = new File(Objects.requireNonNull(getInputData().getString("successful_uploaded_dir")));
         //String succUploadDir = getInputData().getString("successful_uploaded_dir");
         getNameDate(name);
-        StorageReference image = storageReference.child("pictures/").child(gName+"/").child(gDate+"/"+name);
+
+        StorageReference image = storageReference.child("pictures/").child(gName+"/").child(gDate).child(cropType+
+                "/"+name);
         Log.v("imagename", name);
         Log.v("imageuri", stringUri);
 
