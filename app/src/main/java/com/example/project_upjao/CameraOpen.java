@@ -45,11 +45,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CameraOpen extends AppCompatActivity {
-    public static final int CAMERA_PERM_CODE = 101;
     public static final int CAMERA_REQUEST_CODE = 102;
-    public static final int GALLERY_REQUEST_CODE = 105;
     ImageView selectedImage;
-    Button cameraBtn,galleryBtn;
+    Button cameraBtn;
     String currentPhotoPath;
     String currentPhotoPathwebp;
     StorageReference storageReference;
@@ -74,18 +72,12 @@ public class CameraOpen extends AppCompatActivity {
         Log.v("cropType", cropType);
         selectedImage = findViewById(R.id.displayImageView);
         cameraBtn = findViewById(R.id.cameraBtn);
-        galleryBtn = findViewById(R.id.galleryBtn);
 
         context=selectedImage.getContext();
 
         storageReference = FirebaseStorage.getInstance().getReference();
 
         cameraBtn.setOnClickListener(v -> askCameraPermissions());
-
-        galleryBtn.setOnClickListener(v -> {
-            Intent gallery = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(gallery, GALLERY_REQUEST_CODE);
-        });
 
     }
 
@@ -226,20 +218,6 @@ public class CameraOpen extends AppCompatActivity {
 
         }
 
-        if (requestCode == GALLERY_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                Uri contentUri = data.getData();
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                String imageFileName = "png_Gallery" + timeStamp + "." + getFileExt(contentUri);
-                Log.d("tag", "onActivityResult: Gallery Image Uri:  " + imageFileName);
-                //selectedImage.setImageURI(contentUri);
-
-                //uploadToWhatsapp();
-                //uploadImageToFirebase(imageFileName,contentUri);
-                //uploadPlaceDataInBackground(imageFileName, contentUri);
-            }
-
-        }
     }
 
     @Override
