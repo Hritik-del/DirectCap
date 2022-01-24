@@ -58,6 +58,7 @@ public class CameraOpen extends AppCompatActivity {
     File photoFile;
     File storageDirSucc;
     Long num = 0L;
+    File image;
     Uri photoURIwebp;
     File photoFilewebp;
 
@@ -155,13 +156,12 @@ public class CameraOpen extends AppCompatActivity {
 
         //creating file in internal storage for png image
         File storageDir = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath()+"/To Be Uploaded");
-        storageDirSucc = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath()+"/Successfully Uploaded");
+        storageDirSucc = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath());
         Log.v("direc",storageDir.getAbsolutePath());
-        File image = File.createTempFile(
+        image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".png",         /* suffix */
                 storageDir      /* directory */
-
         );
 
         /*File imagewebp = File.createTempFile(
@@ -182,7 +182,15 @@ public class CameraOpen extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAMERA_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                File f = new File(currentPhotoPath);
+                Bitmap imageBitmap = null;
+                try {
+                    imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(photoURI));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                selectedImage.setImageBitmap(imageBitmap);
+
+                /*File f = new File(currentPhotoPath);
 
                 Log.e("pathbitmap12", f.getPath());
                 Picasso.get().load(Uri.fromFile(f))
@@ -197,7 +205,7 @@ public class CameraOpen extends AppCompatActivity {
                 Uri contentUri = Uri.fromFile(f);
 
                 mediaScanIntent.setData(contentUri);
-                this.sendBroadcast(mediaScanIntent);
+                this.sendBroadcast(mediaScanIntent);*/
 
                 /*File fwebp = new File(currentPhotoPathwebp);
                 Log.d("path", "ABsolute Url of Image is webp" + Uri.fromFile(fwebp));
@@ -211,8 +219,8 @@ public class CameraOpen extends AppCompatActivity {
                     Log.v("bitmap", e.getMessage());
                 }*/
 
-                uploadPlaceDataInBackground(f.getName(), contentUri);
-                Log.v("uricontent", contentUri.toString());
+                uploadPlaceDataInBackground(photoFile.getName(), photoURI);
+                Log.v("uricontent", photoURI.toString());
                 //uploadPlaceDataInBackground(fwebp.getName(), contentUriwebp);
             }
 
@@ -245,6 +253,7 @@ public class CameraOpen extends AppCompatActivity {
         uploadBuilder.putString("file_name", name);
         uploadBuilder.putString("successful_uploaded_dir", storageDirSucc.getAbsolutePath());
         uploadBuilder.putString("cropType", cropType);
+        uploadBuilder.putString("imageFileName", image.getName());
         Data ImageUriInputData = uploadBuilder.build();
 
         // ...then create a OneTimeWorkRequest that uses those constraints

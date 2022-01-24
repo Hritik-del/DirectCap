@@ -58,6 +58,7 @@ public class UploadImageWorker extends Worker {
         Uri contentUri = Uri.parse(stringUri);
         String name = getInputData().getString("file_name");
         String cropType = getInputData().getString("cropType");
+        String imageFileName = getInputData().getString("imageFileName");
         File succUploadDir = new File(Objects.requireNonNull(getInputData().getString("successful_uploaded_dir")));
         //String succUploadDir = getInputData().getString("successful_uploaded_dir");
         getNameDate(name);
@@ -74,14 +75,17 @@ public class UploadImageWorker extends Worker {
                     @Override
                     public void onSuccess(Uri uri) {
                         Log.v("tag", "onSuccess : Uploaded Image URL is " + uri.toString());
-                        File imagefile = new File(contentUri.getPath());
-                        File createNewImage = new File(succUploadDir, String.valueOf(contentUri).substring(String.valueOf(contentUri).lastIndexOf('/')));
+                        //File imagefile = new File(contentUri.getPath());
+                        File imagefile = new File(succUploadDir+"/"+"To Be Uploaded"+"/", imageFileName);
+                        File createNewImage = new File(succUploadDir+"/"+"/Successfully Uploaded"+"/", imageFileName);
+                        Log.v("direc", Boolean.toString(imagefile.exists()));
+                        Log.v("direc", imageFileName);
                         File source = imagefile;
 
                         File destination = createNewImage;
                         try
                         {
-                            FileUtils.copyFile(source, destination);
+                            FileUtils.copyFile(imagefile, createNewImage);
                         }
                         catch (IOException e)
                         {
