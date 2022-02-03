@@ -46,9 +46,9 @@ public class CloudStorage {
         object.setBucket(bucketName);
         File sdcard = Environment.getExternalStorageDirectory();
         //File file = new File(sdcard,filePath);
-        Log.v("uploadcheckgcp", uri.getPath());
-        File file = new File(uri.getPath());
-
+        File dir = new File(uri.getPath().substring(0, uri.getPath().lastIndexOf('/')));
+        File file = new File(dir, name);
+        Log.v("uploadcheckgcp", file.getAbsolutePath());
         InputStream stream = new FileInputStream(file);
 
         try {

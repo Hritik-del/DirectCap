@@ -8,6 +8,11 @@ android {
     compileSdkVersion 31
     buildToolsVersion "31.0.0"
 
+    packagingOptions{
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/DEPENDENCIES'
+    }
+
     defaultConfig {
         applicationId "com.example.project_upjao"
         minSdkVersion 19
