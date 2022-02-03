@@ -155,7 +155,7 @@ public class CameraOpen extends AppCompatActivity {
 
         //creating file in internal storage for png image
         File storageDir = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath()+"/To Be Uploaded");
-        storageDirSucc = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath()+"/Successfully Uploaded");
+        storageDirSucc = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath());
         Log.v("direc",storageDir.getAbsolutePath());
         File image = File.createTempFile(
                 imageFileName,  /* prefix */

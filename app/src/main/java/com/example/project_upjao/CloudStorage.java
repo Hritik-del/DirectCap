@@ -39,17 +39,12 @@ public class CloudStorage {
     static UploadImageWorker activity=null;
     private static final String TAG = "CloudStorage";
 
-    public static void uploadFile(UploadImageWorker activity1, String bucketName, String name, Uri uri, File storageDir)throws Exception {
+    public static void uploadFile(UploadImageWorker activity1, String bucketName, String name, File storageDir)throws Exception {
         activity = activity1;
         Storage storage = getStorage();
         StorageObject object = new StorageObject();
         object.setBucket(bucketName);
-        File sdcard = Environment.getExternalStorageDirectory();
-        //File file = new File(sdcard,filePath);
-        File dir = new File(uri.getPath().substring(0, uri.getPath().lastIndexOf('/')));
         File file = new File(storageDir+"/"+"To Be Uploaded"+"/", name);
-        Log.v("uploadcheckgcp", file.getAbsolutePath());
-        Log.v("uploadcheckgcp", file.exists() + " ");
         InputStream stream = new FileInputStream(file);
 
         try {
@@ -60,7 +55,10 @@ public class CloudStorage {
             insert.setName(name);
             StorageObject obj = insert.execute();
             Log.d(TAG, obj.getSelfLink());
-        } finally {
+        }catch (Exception e){
+            Log.v("uploadcheckgcp", e.getMessage());
+        }
+        finally {
             stream.close();
         }
     }
@@ -68,6 +66,7 @@ public class CloudStorage {
     static Storage storage = null;
     private static Storage getStorage() throws Exception {
 
+        Log.v("uploadcheckgcp", "2");
         if (storage == null) {
             HttpTransport httpTransport = new NetHttpTransport();
             JsonFactory jsonFactory = new JacksonFactory();
@@ -77,7 +76,7 @@ public class CloudStorage {
             Credential credential = new GoogleCredential.Builder()
                     .setTransport(httpTransport)
                     .setJsonFactory(jsonFactory)
-                    .setServiceAccountId("myuser-801@xxxyyyzzz.iam.gserviceaccount.com") //Email
+                    .setServiceAccountId("myuser@analyticsupjao.iam.gserviceaccount.com") //Email
                     .setServiceAccountPrivateKeyFromP12File(getTempPkc12File())
                     .setServiceAccountScopes(scopes).build();
 

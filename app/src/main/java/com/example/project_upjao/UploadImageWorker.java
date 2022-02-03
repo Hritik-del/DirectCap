@@ -53,13 +53,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class UploadImageWorker extends Worker {
-    StorageReference storageReference;
-    String gName;
-    static String docUrl;
-    String gDate;
-    Data outputData;
-    Long num = new Long(0);
-
     static UploadImageWorker activity;
     public UploadImageWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -69,104 +62,13 @@ public class UploadImageWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-
-        String stringUri = getInputData().getString("image_uri");
-        Uri contentUri = Uri.parse(stringUri);
-        File file = new File(contentUri.getPath());
         File storageDir = new File(Objects.requireNonNull(getInputData().getString("successful_uploaded_dir")));
         String name = getInputData().getString("file_name");
         try {
-            CloudStorage.uploadFile(activity,"app_images_full_dev", name, contentUri, storageDir);
+            CloudStorage.uploadFile(activity,"app_images_full_dev", name, storageDir);
         } catch (Exception e) {
             Log.v("uploadcheckgcp", e.getMessage());
         }
-                /*storageReference = FirebaseStorage.getInstance().getReference();
-        String stringUri = getInputData().getString("image_uri");
-        Log.v("uri", stringUri);
-        Uri contentUri = Uri.parse(stringUri);
-        String name = getInputData().getString("file_name");
-        String cropType = getInputData().getString("cropType");
-        File succUploadDir = new File(Objects.requireNonNull(getInputData().getString("successful_uploaded_dir")));
-        //String succUploadDir = getInputData().getString("successful_uploaded_dir");
-        getNameDate(name);
-
-        StorageReference image = storageReference.child("pictures/").child(gName+"/").child(gDate).child(cropType+
-                "/"+name);
-        Log.v("imagename", name);
-        Log.v("imageuri", stringUri);
-
-        image.putFile(contentUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                image.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                    @Override
-                    public void onSuccess(Uri uri) {
-                        Log.v("tag", "onSuccess : Uploaded Image URL is " + uri.toString());
-                        File imagefile = new File(contentUri.getPath());
-                        File createNewImage = new File(succUploadDir, String.valueOf(contentUri).substring(String.valueOf(contentUri).lastIndexOf('/')));
-                        File source = imagefile;
-
-                        File destination = createNewImage;
-                        try
-                        {
-                            FileUtils.copyFile(source, destination);
-                        }
-                        catch (IOException e)
-                        {
-                            Log.v("direc", e.getMessage());
-                        }
-                        Log.v("direc", Boolean.toString(imagefile.exists()));
-                        Log.v("direc", Boolean.toString(destination.exists()));
-                        if(imagefile.exists())
-                        {
-                            imagefile.delete();
-                        }
-                        //increasing the count of number of succuploaded files.
-                        try {
-                            FileReader fis = new FileReader(MainActivity.succUploaded);
-                            //DataInputStream in = new DataInputStream(fis);
-                            BufferedReader br =
-                                    new BufferedReader(fis);
-                            String strLine;
-                            while ((strLine = br.readLine()) != null) {
-                                Log.v("myapp", strLine);
-                                num = Long.parseLong(strLine);
-                            }
-                            Log.v("myapp", Long.toString(num));
-                            num++;
-                            br.close();
-                        } catch (IOException e) {
-                            Log.v("filepdf", e.getMessage());
-                            e.printStackTrace();
-                        }
-                        try {
-                            FileWriter fos = new FileWriter(MainActivity.succUploaded);
-                            fos.write(Long.toString(num));
-                            fos.close();
-                        } catch (IOException e) {
-                            Log.v("filepdf", e.getMessage());
-                        }
-                        Toast.makeText(getApplicationContext(), "Upload Successful :)", Toast.LENGTH_SHORT).show();
-
-                        docUrl = uri.toString();
-
-                        //result[0] = Result.success(outputData);
-                    }
-                });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.i("tag", "onComplete: image NOT uploaded - RETRYING");
-                //result[0] = Result.retry();
-            }
-        });
-        Data.Builder outputBuilder = new Data.Builder();
-        outputBuilder.putString("image_url", docUrl.toString());
-        outputData = outputBuilder.build();
-        //Log.v("hritik", result[0].toString());
-        Log.v("hritik", docUrl.toString());
-        return Result.success(outputData);*/
         return Result.success();
     }
 
