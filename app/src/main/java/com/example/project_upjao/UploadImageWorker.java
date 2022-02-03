@@ -80,7 +80,7 @@ public class UploadImageWorker extends Worker {
                         File createNewImage = new File(succUploadDir+"/"+"/Successfully Uploaded"+"/", imageFileName);
                         Log.v("direc", Boolean.toString(imagefile.exists()));
                         Log.v("direc", imageFileName);
-                        File source = imagefile;
+                        /*File source = imagefile;
 
                         File destination = createNewImage;
                         try
@@ -95,7 +95,7 @@ public class UploadImageWorker extends Worker {
                         if(imagefile.exists())
                         {
                             imagefile.delete();
-                        }
+                        }*/
                         //increasing the count of number of succuploaded files.
                         try {
                             FileReader fis = new FileReader(MainActivity.succUploaded);
