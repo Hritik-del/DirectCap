@@ -77,7 +77,7 @@ public class UploadImageWorker extends Worker {
         try {
             CloudStorage.uploadFile(activity,"app_images_full_dev", name, contentUri);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.v("uploadcheckgcp", e.getMessage());
         }
                 /*storageReference = FirebaseStorage.getInstance().getReference();
         String stringUri = getInputData().getString("image_uri");
