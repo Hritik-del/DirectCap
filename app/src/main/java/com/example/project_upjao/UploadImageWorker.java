@@ -73,9 +73,10 @@ public class UploadImageWorker extends Worker {
         String stringUri = getInputData().getString("image_uri");
         Uri contentUri = Uri.parse(stringUri);
         File file = new File(contentUri.getPath());
+        File storageDir = new File(Objects.requireNonNull(getInputData().getString("successful_uploaded_dir")));
         String name = getInputData().getString("file_name");
         try {
-            CloudStorage.uploadFile(activity,"app_images_full_dev", name, contentUri);
+            CloudStorage.uploadFile(activity,"app_images_full_dev", name, contentUri, storageDir);
         } catch (Exception e) {
             Log.v("uploadcheckgcp", e.getMessage());
         }
