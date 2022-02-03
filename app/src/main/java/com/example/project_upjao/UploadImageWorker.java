@@ -1,5 +1,6 @@
 package com.example.project_upjao;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.net.wifi.hotspot2.pps.Credential;
 import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
@@ -17,8 +19,15 @@ import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.android.gms.auth.api.signin.internal.Storage;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.InputStreamContent;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.services.storage.StorageScopes;
+import com.google.api.services.storage.model.StorageObject;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -29,12 +38,18 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class UploadImageWorker extends Worker {
@@ -45,20 +60,31 @@ public class UploadImageWorker extends Worker {
     Data outputData;
     Long num = new Long(0);
 
+    static UploadImageWorker activity;
     public UploadImageWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+        activity = this;
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        storageReference = FirebaseStorage.getInstance().getReference();
+
+        String stringUri = getInputData().getString("image_uri");
+        Uri contentUri = Uri.parse(stringUri);
+        File file = new File(contentUri.getPath());
+        String name = getInputData().getString("file_name");
+        try {
+            CloudStorage.uploadFile(activity,"app_images_full_dev", name, contentUri);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+                /*storageReference = FirebaseStorage.getInstance().getReference();
         String stringUri = getInputData().getString("image_uri");
         Log.v("uri", stringUri);
         Uri contentUri = Uri.parse(stringUri);
         String name = getInputData().getString("file_name");
         String cropType = getInputData().getString("cropType");
-        String imageFileName = getInputData().getString("imageFileName");
         File succUploadDir = new File(Objects.requireNonNull(getInputData().getString("successful_uploaded_dir")));
         //String succUploadDir = getInputData().getString("successful_uploaded_dir");
         getNameDate(name);
@@ -75,23 +101,21 @@ public class UploadImageWorker extends Worker {
                     @Override
                     public void onSuccess(Uri uri) {
                         Log.v("tag", "onSuccess : Uploaded Image URL is " + uri.toString());
-                        //File imagefile = new File(contentUri.getPath());
-                        File imagefile = new File(succUploadDir+"/"+"To Be Uploaded"+"/", imageFileName);
-                        File createNewImage = new File(succUploadDir+"/"+"/Successfully Uploaded"+"/", imageFileName);
-                        Log.v("direc", Boolean.toString(imagefile.exists()));
-                        Log.v("direc", imageFileName);
+                        File imagefile = new File(contentUri.getPath());
+                        File createNewImage = new File(succUploadDir, String.valueOf(contentUri).substring(String.valueOf(contentUri).lastIndexOf('/')));
                         File source = imagefile;
 
                         File destination = createNewImage;
                         try
                         {
-                            FileUtils.copyFile(imagefile, createNewImage);
+                            FileUtils.copyFile(source, destination);
                         }
                         catch (IOException e)
                         {
                             Log.v("direc", e.getMessage());
                         }
-
+                        Log.v("direc", Boolean.toString(imagefile.exists()));
+                        Log.v("direc", Boolean.toString(destination.exists()));
                         if(imagefile.exists())
                         {
                             imagefile.delete();
@@ -141,38 +165,9 @@ public class UploadImageWorker extends Worker {
         outputData = outputBuilder.build();
         //Log.v("hritik", result[0].toString());
         Log.v("hritik", docUrl.toString());
-        return Result.success(outputData);
+        return Result.success(outputData);*/
+        return Result.success();
     }
 
-
-    public void getNameDate(String imageName)
-    {
-        StringBuilder name = new StringBuilder();
-        StringBuilder date = new StringBuilder();
-        int i = 0;
-        for(i = 0; i < imageName.length(); i++)
-        {
-            if(imageName.charAt(i) == '$')
-                break;
-            if(imageName.charAt(i) != '$')
-            {
-                name.append(imageName.charAt(i));
-            }
-        }
-        i++;
-        for(; i < imageName.length(); i++)
-        {
-            if(imageName.charAt(i) == '$')
-                break;
-            if(imageName.charAt(i) != '$')
-            {
-                date.append(imageName.charAt(i));
-            }
-        }
-        date.insert(4, '-');
-        date.insert(7, '-');
-        gName = name.toString();
-        gDate = date.toString();
-    }
 }
 

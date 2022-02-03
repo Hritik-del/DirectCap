@@ -58,7 +58,6 @@ public class CameraOpen extends AppCompatActivity {
     File photoFile;
     File storageDirSucc;
     Long num = 0L;
-    File image;
     Uri photoURIwebp;
     File photoFilewebp;
 
@@ -156,12 +155,13 @@ public class CameraOpen extends AppCompatActivity {
 
         //creating file in internal storage for png image
         File storageDir = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath()+"/To Be Uploaded");
-        storageDirSucc = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath());
+        storageDirSucc = getExternalFilesDir(Environment.getRootDirectory().getAbsolutePath()+"/Successfully Uploaded");
         Log.v("direc",storageDir.getAbsolutePath());
-        image = File.createTempFile(
+        File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".png",         /* suffix */
                 storageDir      /* directory */
+
         );
 
         /*File imagewebp = File.createTempFile(
@@ -219,7 +219,7 @@ public class CameraOpen extends AppCompatActivity {
                     Log.v("bitmap", e.getMessage());
                 }*/
 
-                uploadPlaceDataInBackground(photoFile.getName(), photoURI);
+                uploadPlaceDataInBackground1(photoFile.getName(), photoURI);
                 Log.v("uricontent", photoURI.toString());
                 //uploadPlaceDataInBackground(fwebp.getName(), contentUriwebp);
             }
@@ -253,7 +253,6 @@ public class CameraOpen extends AppCompatActivity {
         uploadBuilder.putString("file_name", name);
         uploadBuilder.putString("successful_uploaded_dir", storageDirSucc.getAbsolutePath());
         uploadBuilder.putString("cropType", cropType);
-        uploadBuilder.putString("imageFileName", image.getName());
         Data ImageUriInputData = uploadBuilder.build();
 
         // ...then create a OneTimeWorkRequest that uses those constraints
@@ -279,11 +278,45 @@ public class CameraOpen extends AppCompatActivity {
                 .enqueue();
     }
 
-    private String getFileExt(Uri contentUri) {
-        ContentResolver c = getContentResolver();
-        MimeTypeMap mime = MimeTypeMap.getSingleton();
-        return mime.getExtensionFromMimeType(c.getType(contentUri));
+    private void uploadPlaceDataInBackground1(String name, Uri contentUri) {
+
+        // TESTING WORKMANAGER FOR UPLOADING IMAGES TO FIREBASE STORAGE
+        // Create a Constraints object that defines when the task should run
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        // Passing data to the worker class
+        Data.Builder uploadBuilder = new Data.Builder();
+        uploadBuilder.putString("image_uri", contentUri.toString());
+        uploadBuilder.putString("file_name", name);
+        uploadBuilder.putString("successful_uploaded_dir", storageDirSucc.getAbsolutePath());
+        uploadBuilder.putString("cropType", cropType);
+        Data ImageUriInputData = uploadBuilder.build();
+
+        // ...then create a OneTimeWorkRequest that uses those constraints
+        OneTimeWorkRequest uploadToFirebase = new OneTimeWorkRequest
+                .Builder(UploadImageWorker.class)
+                .setConstraints(constraints)
+                .setInputData(ImageUriInputData)
+                .build();
+
+        Data.Builder uploadBuilder1 = new Data.Builder();
+        uploadBuilder1.putString("image_uri", currentPhotoPath);
+        Data ImageUriInputData1 = uploadBuilder1.build();
+
+        OneTimeWorkRequest compress = new OneTimeWorkRequest
+                .Builder(Compress.class)
+                .setInputData(ImageUriInputData1)
+                .build();
+
+        // Execute and Manage the background service
+        WorkManager workManager = WorkManager.getInstance(selectedImage.getContext());
+        workManager.beginWith(compress)
+                .then(uploadToFirebase)
+                .enqueue();
     }
+
 
 
 
