@@ -85,7 +85,7 @@ public class UploadImageWorker extends Worker {
         } catch (Exception e) {
             Log.v("uploadcheckgcp", e.getMessage());
         }
-        FirestoreOptions firestoreOptions =
+        /*FirestoreOptions firestoreOptions =
                 null;
         try {
             Context context = activity.getApplicationContext();
@@ -93,14 +93,14 @@ public class UploadImageWorker extends Worker {
             InputStream pkc12Stream = am.open("jsonfile.json");
             GoogleCredentials credentials = GoogleCredentials.fromStream(pkc12Stream)
                     .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-            /*GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("D:\\Android_Projects\\Project_Upjao\\app\\src\\main\\assets\\jsonfile.json"))
-                    .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));*/
+            *//*GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("D:\\Android_Projects\\Project_Upjao\\app\\src\\main\\assets\\jsonfile.json"))
+                    .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));*//*
 
             firestoreOptions = FirestoreOptions.getDefaultInstance().toBuilder()
                     .setProjectId("analyticsupjao")
                     .setCredentials(credentials)
                     .build();
-            Log.v("uploadcheckgcp", "6");
+
 
         } catch (IOException e) {
             Log.v("uploadcheckgcp", e.getMessage());
@@ -108,6 +108,7 @@ public class UploadImageWorker extends Worker {
         Log.v("uploadcheckgcp", firestoreOptions.toString());
         try {
             Firestore db = firestoreOptions.getService();
+            Log.v("uploadcheckgcp", db == null ? "true" : "false");
             DocumentReference docRef = db.collection("users").document("alovelace");
             // Add document data  with id "alovelace" using a hashmap
             Map<String, Object> data = new HashMap<>();
@@ -127,7 +128,7 @@ public class UploadImageWorker extends Worker {
         }catch (Exception e){
             Log.v("uploadcheckgcp2", e.getMessage());
         }
-        Log.v("uploadcheckgcp", "7");
+        Log.v("uploadcheckgcp", "7");*/
 
         return Result.success();
     }

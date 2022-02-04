@@ -67,18 +67,28 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
 
     //google cloud
-    implementation 'com.google.apis:google-api-services-storage:'
 
-    implementation platform('com.google.cloud:libraries-bom:16.2.1')
-    implementation 'com.google.cloud:google-cloud-storage'
-    implementation 'com.google.cloud:google-cloud-core:1.94.0'
+    implementation ("com.google.cloud:google-cloud-storage:1.113.6") {
+        exclude module: 'protobuf-javalite'
+        exclude module: 'protobuf-java'
+        exclude module: 'proto-google-common-protos'    }
 
+    implementation ('com.google.cloud:google-cloud-core:1.94.0'){
+        exclude module: 'protobuf-javalite'
+        exclude module: 'protobuf-java'
+        exclude module: 'proto-google-common-protos'
+    }
 
     implementation ('com.google.cloud:google-cloud-firestore:2.1.0'){
         exclude module: 'protobuf-javalite'
         exclude module: 'protobuf-java'
         exclude module: 'proto-google-common-protos'
     }
+
+    implementation 'io.grpc:grpc-okhttp:1.44.0'
+    implementation 'io.grpc:grpc-protobuf-lite:1.44.0'
+    implementation 'io.grpc:grpc-stub:1.44.0'
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
 
 
 }
