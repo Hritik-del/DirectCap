@@ -1,10 +1,14 @@
 package com.example.project_upjao;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputLayout;
 import android.graphics.Camera;
 import android.os.Bundle;
@@ -16,10 +20,16 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private String filepath = "MyFileStorage";
     static File succUploaded;
     static File tobeUploaded;
+    static FirebaseStorage firebaseStorage;
     File myInternalFile;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         editTextCrop = findViewById(R.id.cropType);
         button = findViewById(R.id.button);
 
+        firebaseStorage = FirebaseStorage.getInstance(MySecondaryProject.getInstance((this)));
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -19,6 +19,7 @@ import androidx.work.WorkerParameters;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -39,20 +40,25 @@ import java.util.Objects;
 
 public class UploadImageWorker extends Worker {
     StorageReference storageReference;
+    StorageReference storageReference1;
     String gName;
     static String docUrl;
     String gDate;
     Data outputData;
     Long num = new Long(0);
-
+    Context context1;
     public UploadImageWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+        context1 = context;
     }
 
     @NonNull
     @Override
     public Result doWork() {
         storageReference = FirebaseStorage.getInstance().getReference();
+
+        storageReference1 = MainActivity.firebaseStorage.getReference();
+        Log.v("storagereference", storageReference.toString());
         String stringUri = getInputData().getString("image_uri");
         Log.v("uri", stringUri);
         Uri contentUri = Uri.parse(stringUri);
@@ -63,7 +69,7 @@ public class UploadImageWorker extends Worker {
         //String succUploadDir = getInputData().getString("successful_uploaded_dir");
         getNameDate(name);
 
-        StorageReference image = storageReference.child("pictures/").child(gName+"/").child(gDate).child(cropType+
+        StorageReference image = storageReference1.child("pictures/").child(gName+"/").child(gDate).child(cropType+
                 "/"+name);
         Log.v("nameanddate", gName+" "+gDate);
         Log.v("imagename", name);
@@ -133,7 +139,7 @@ public class UploadImageWorker extends Worker {
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Log.i("tag", "onComplete: image NOT uploaded - RETRYING");
+                Log.i("tag", e.getMessage());
                 //result[0] = Result.retry();
             }
         });
