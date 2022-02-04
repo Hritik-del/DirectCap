@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import com.google.android.material.textfield.TextInputLayout;
+
+import android.content.res.AssetManager;
 import android.graphics.Camera;
 import android.os.Bundle;
 import android.os.Environment;
@@ -15,12 +17,20 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+/*import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;*/
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
+import com.google.common.collect.Lists;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
