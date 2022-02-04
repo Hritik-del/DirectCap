@@ -58,7 +58,7 @@ public class UploadImageWorker extends Worker {
         storageReference = FirebaseStorage.getInstance().getReference();
 
         storageReference1 = MainActivity.firebaseStorage.getReference();
-        Log.v("storagereference", storageReference.toString());
+        Log.v("storagereference", storageReference1.toString());
         String stringUri = getInputData().getString("image_uri");
         Log.v("uri", stringUri);
         Uri contentUri = Uri.parse(stringUri);
