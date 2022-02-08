@@ -110,7 +110,7 @@ public class CameraOpen extends AppCompatActivity {
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 //increasing the count of number of tobeuploaded Pdf files.
-                try {
+                /*try {
                     FileReader fis = new FileReader(MainActivity.tobeUploaded);
                     BufferedReader br =
                             new BufferedReader(fis);
@@ -131,7 +131,7 @@ public class CameraOpen extends AppCompatActivity {
                     fos.close();
                 } catch (IOException e) {
                     Log.v("filepdf", e.getMessage());
-                }
+                }*/
 
                 if (Build.VERSION.SDK_INT >= 24) {
                     photoURI = FileProvider.getUriForFile(context,
