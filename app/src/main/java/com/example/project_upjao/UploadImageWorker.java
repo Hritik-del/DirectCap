@@ -65,6 +65,7 @@ public class UploadImageWorker extends Worker {
 
         StorageReference image = storageReference.child("pictures/").child(gName+"/").child(gDate).child(cropType+
                 "/"+name);
+        Log.v("nameanddate", gName+" "+gDate);
         Log.v("imagename", name);
         Log.v("imageuri", stringUri);
 
@@ -136,12 +137,7 @@ public class UploadImageWorker extends Worker {
                 //result[0] = Result.retry();
             }
         });
-        Data.Builder outputBuilder = new Data.Builder();
-        outputBuilder.putString("image_url", docUrl.toString());
-        outputData = outputBuilder.build();
-        //Log.v("hritik", result[0].toString());
-        Log.v("hritik", docUrl.toString());
-        return Result.success(outputData);
+        return Result.success();
     }
 
 

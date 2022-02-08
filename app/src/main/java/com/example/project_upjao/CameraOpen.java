@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -49,7 +50,6 @@ public class CameraOpen extends AppCompatActivity {
     ImageView selectedImage;
     Button cameraBtn;
     String currentPhotoPath;
-    String currentPhotoPathwebp;
     StorageReference storageReference;
     String person_name;
     String cropType;
@@ -59,8 +59,6 @@ public class CameraOpen extends AppCompatActivity {
     File storageDirSucc;
     Long num = 0L;
     File image;
-    Uri photoURIwebp;
-    File photoFilewebp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,17 +133,16 @@ public class CameraOpen extends AppCompatActivity {
                     Log.v("filepdf", e.getMessage());
                 }
 
-                photoURI = FileProvider.getUriForFile(context,
-                        context.getPackageName() + ".provider", photoFile);
+                if (Build.VERSION.SDK_INT >= 24) {
+                    photoURI = FileProvider.getUriForFile(context,
+                            context.getPackageName() + ".provider", photoFile);
+                }
+                else{
+                    photoURI = Uri.fromFile(photoFile);
+                }
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
             }
-            /*if (photoFilewebp != null) {
-                photoURIwebp = FileProvider.getUriForFile(context,
-                        context.getPackageName() + ".provider", photoFilewebp);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURIwebp);
-                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
-            }*/
         }
     }
 
@@ -164,14 +161,6 @@ public class CameraOpen extends AppCompatActivity {
                 storageDir      /* directory */
         );
 
-        /*File imagewebp = File.createTempFile(
-                imageFileName,
-                ".webp",
-                storageDir
-        );
-        currentPhotoPathwebp = imagewebp.getAbsolutePath();
-        photoFilewebp = imagewebp;*/
-
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
         return image;
@@ -189,35 +178,6 @@ public class CameraOpen extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 selectedImage.setImageBitmap(imageBitmap);
-
-                /*File f = new File(currentPhotoPath);
-
-                Log.e("pathbitmap12", f.getPath());
-                Picasso.get().load(Uri.fromFile(f))
-                        .resize(300, 0)
-                        .centerInside()
-                        .into(selectedImage);
-
-
-                Log.v("path", "ABsolute Url of Image is png " + Uri.fromFile(f));
-
-                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                Uri contentUri = Uri.fromFile(f);
-
-                mediaScanIntent.setData(contentUri);
-                this.sendBroadcast(mediaScanIntent);*/
-
-                /*File fwebp = new File(currentPhotoPathwebp);
-                Log.d("path", "ABsolute Url of Image is webp" + Uri.fromFile(fwebp));
-                Uri contentUriwebp = Uri.fromFile(f);
-                try  {
-                    FileOutputStream out = new FileOutputStream(fwebp);
-
-                    myBitmap.compress(Bitmap.CompressFormat.WEBP, 90, out); // bmp is your Bitmap instance
-                    out.close();
-                } catch (IOException e) {
-                    Log.v("bitmap", e.getMessage());
-                }*/
 
                 uploadPlaceDataInBackground(photoFile.getName(), photoURI);
                 Log.v("uricontent", photoURI.toString());
@@ -240,8 +200,6 @@ public class CameraOpen extends AppCompatActivity {
     }
 
     private void uploadPlaceDataInBackground(String name, Uri contentUri) {
-
-        // TESTING WORKMANAGER FOR UPLOADING IMAGES TO FIREBASE STORAGE
         // Create a Constraints object that defines when the task should run
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -278,13 +236,4 @@ public class CameraOpen extends AppCompatActivity {
                 .then(uploadToFirebase)
                 .enqueue();
     }
-
-    private String getFileExt(Uri contentUri) {
-        ContentResolver c = getContentResolver();
-        MimeTypeMap mime = MimeTypeMap.getSingleton();
-        return mime.getExtensionFromMimeType(c.getType(contentUri));
-    }
-
-
-
 }

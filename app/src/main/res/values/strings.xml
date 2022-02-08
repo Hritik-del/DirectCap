@@ -1,4 +1,3 @@
 <resources>
-    <string name="app_name">Data Capturing App</string>
-    <string name="whatsapp_suffix">"   "</string>
+    <string name="app_name">DirectCap</string>
 </resources>
