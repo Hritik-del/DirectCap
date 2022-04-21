@@ -76,24 +76,8 @@ public class CameraOpen extends AppCompatActivity {
 
         storageReference = FirebaseStorage.getInstance().getReference();
 
-        cameraBtn.setOnClickListener(v -> askCameraPermissions());
+        cameraBtn.setOnClickListener(v -> dispatchTakePictureIntent());
 
-    }
-
-    public void askCameraPermissions(){
-        if(ContextCompat.checkSelfPermission(getApplicationContext(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.CAMERA)==
-                        PackageManager.PERMISSION_GRANTED){
-            dispatchTakePictureIntent();
-            //Do_SOme_Operation();
-        }else{
-            requestStoragePermission();
-        }
-    }
-    public void requestStoragePermission(){
-        ActivityCompat.requestPermissions(this
-                ,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.CAMERA},1234);
     }
 
     private void dispatchTakePictureIntent() {
