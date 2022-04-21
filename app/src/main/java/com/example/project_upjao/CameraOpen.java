@@ -82,7 +82,9 @@ public class CameraOpen extends AppCompatActivity {
 
     public void askCameraPermissions(){
         if(ContextCompat.checkSelfPermission(getApplicationContext(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED){
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.CAMERA)==
+                        PackageManager.PERMISSION_GRANTED){
             dispatchTakePictureIntent();
             //Do_SOme_Operation();
         }else{

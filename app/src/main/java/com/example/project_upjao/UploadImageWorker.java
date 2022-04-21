@@ -78,12 +78,12 @@ public class UploadImageWorker extends Worker {
                         Log.v("tag", "onSuccess : Uploaded Image URL is " + uri.toString());
                         //File imagefile = new File(contentUri.getPath());
                         File imagefile = new File(succUploadDir+"/"+"To Be Uploaded"+"/", imageFileName);
-                        File createNewImage = new File(succUploadDir+"/"+"/Successfully Uploaded"+"/", imageFileName);
+                        //File createNewImage = new File(succUploadDir+"/"+"/Successfully Uploaded"+"/", imageFileName);
                         Log.v("direc", Boolean.toString(imagefile.exists()));
                         Log.v("direc", imageFileName);
                         File source = imagefile;
 
-                        File destination = createNewImage;
+                        /*File destination = createNewImage;
                         try
                         {
                             FileUtils.copyFile(imagefile, createNewImage);
@@ -96,7 +96,7 @@ public class UploadImageWorker extends Worker {
                         if(imagefile.exists())
                         {
                             imagefile.delete();
-                        }
+                        }*/
                         //increasing the count of number of succuploaded files.
                         try {
                             FileReader fis = new FileReader(MainActivity.succUploaded);
