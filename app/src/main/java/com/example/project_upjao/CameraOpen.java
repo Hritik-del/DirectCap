@@ -1,6 +1,7 @@
 package com.example.project_upjao;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -59,11 +60,21 @@ public class CameraOpen extends AppCompatActivity {
     File storageDirSucc;
     Long num = 0L;
     File image;
+    File tobeUploaded;
+    File succUploaded;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_open);
+
+        String filePath = getExternalFilesDir("mdata").getPath()+ "/" + "Checksum";
+        File directory = new File(filePath);
+        if (!directory.exists()) {
+            directory.mkdirs();
+            tobeUploaded = new File(directory, "To be uploaded.txt");
+            succUploaded = new File(directory, "Successfully uploaded.txt");
+        }
 
         Intent intent = getIntent();
         person_name = intent.getStringExtra("person_name");
@@ -71,19 +82,14 @@ public class CameraOpen extends AppCompatActivity {
         Log.v("cropType", cropType);
         selectedImage = findViewById(R.id.displayImageView);
         cameraBtn = findViewById(R.id.cameraBtn);
-
         context=selectedImage.getContext();
-
         storageReference = FirebaseStorage.getInstance().getReference();
-
         cameraBtn.setOnClickListener(v -> dispatchTakePictureIntent());
-
     }
 
     private void dispatchTakePictureIntent() {
 
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
@@ -94,10 +100,8 @@ public class CameraOpen extends AppCompatActivity {
                 Toast.makeText(this, "Not able to create image file on disk :(", Toast.LENGTH_SHORT).show();
             }
             // Continue only if the File was successfully created
-            if (photoFile != null) {
-                //increasing the count of number of tobeuploaded Pdf files.
-                try {
-                    FileReader fis = new FileReader(MainActivity.tobeUploaded);
+            if (photoFile != null)/*try {
+                    FileReader fis = new FileReader(tobeUploaded);
                     BufferedReader br =
                             new BufferedReader(fis);
                     String strLine;
@@ -112,20 +116,17 @@ public class CameraOpen extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 try {
-                    FileWriter fos = new FileWriter(MainActivity.tobeUploaded);
+                    FileWriter fos = new FileWriter(tobeUploaded);
                     fos.write(Long.toString(num));
                     fos.close();
                 } catch (IOException e) {
                     Log.v("filepdf", e.getMessage());
-                }
+                }*/ {
+                //increasing the count of number of tobeuploaded Pdf files.
 
-                if (Build.VERSION.SDK_INT >= 24) {
-                    photoURI = FileProvider.getUriForFile(context,
-                            context.getPackageName() + ".provider", photoFile);
-                }
-                else{
-                    photoURI = Uri.fromFile(photoFile);
-                }
+
+                photoURI = FileProvider.getUriForFile(context,
+                        context.getPackageName() + ".provider", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
             }
@@ -134,7 +135,7 @@ public class CameraOpen extends AppCompatActivity {
 
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd$HHmmss").format(new Date());
+        @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd$HHmmss").format(new Date());
         String imageFileName = person_name+"$" + timeStamp + "_";
 
         //creating file in internal storage for png image
@@ -146,7 +147,6 @@ public class CameraOpen extends AppCompatActivity {
                 ".png",         /* suffix */
                 storageDir      /* directory */
         );
-
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
         return image;
@@ -163,7 +163,11 @@ public class CameraOpen extends AppCompatActivity {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
-                selectedImage.setImageBitmap(imageBitmap);
+                try {
+                    selectedImage.setImageBitmap(imageBitmap);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
 
                 uploadPlaceDataInBackground(photoFile.getName(), photoURI);
                 Log.v("uricontent", photoURI.toString());

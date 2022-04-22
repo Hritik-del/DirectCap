@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String filePath = getExternalFilesDir("mdata").getPath()+ "/" + "Checksum";
+                /*String filePath = getExternalFilesDir("mdata").getPath()+ "/" + "Checksum";
                 //File directory = new File(Environment.getExternalStorageDirectory(), "Image Capture/"+editText.getEditText().getText().toString());
                 File directory = new File(filePath);
                 if (!directory.exists()){
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         Log.d("Files", "FileName:" + files[i].getName());
                     }
-                }
+                }*/
 
                 if(!validateName())
                 {

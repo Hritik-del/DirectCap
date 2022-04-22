@@ -98,7 +98,7 @@ public class UploadImageWorker extends Worker {
                             imagefile.delete();
                         }*/
                         //increasing the count of number of succuploaded files.
-                        try {
+                        /*try {
                             FileReader fis = new FileReader(MainActivity.succUploaded);
                             //DataInputStream in = new DataInputStream(fis);
                             BufferedReader br =
@@ -121,7 +121,7 @@ public class UploadImageWorker extends Worker {
                             fos.close();
                         } catch (IOException e) {
                             Log.v("filepdf", e.getMessage());
-                        }
+                        }*/
                         Toast.makeText(getApplicationContext(), "Upload Successful :)", Toast.LENGTH_SHORT).show();
 
                         docUrl = uri.toString();
